@@ -1,0 +1,22 @@
+{
+  "name": "workboard",
+  "version": "1.0.0",
+  "description": "Gestionnaire de tâches utilisant NodeJS et MongoDB",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/JulesGirardon/Workboard.git"
+  },
+  "author": "Jules GIRARDON | Lucas VIAL",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JulesGirardon/Workboard/issues"
+  },
+  "homepage": "https://github.com/JulesGirardon/Workboard#readme",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
