@@ -12,6 +12,9 @@ app.use('/tasks', tasksRoutes);
 const taskRoutes = require('./routes/task');
 app.use('/task', taskRoutes);
 
+const categoriesRoutes = require('./routes/categories');
+app.use('/categories', categoriesRoutes);
+
 async function main() {
   await mongoose.connect('mongodb://127.0.0.1:27017/Workboard');
   console.log('MongoDB connected !');

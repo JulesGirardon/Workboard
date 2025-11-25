@@ -23,9 +23,9 @@ const taskSchema = new mongoose.Schema({
     enum: ['à faire', 'en cours', 'terminée', 'annulée'],
     default: 'à faire',
   },
-  priotite: {
-    type: String,
-    enum: ['basse', 'moyenne', 'haute', 'critique'],
+  priorite: {
+    type: Number,
+    enum: [1, 2, 3, 4],
   },
   categorie: {
     type: String,
