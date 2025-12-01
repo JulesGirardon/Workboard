@@ -1,0 +1,130 @@
+/* General page styling */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f7f9;
+  margin: 0;
+  padding: 20px;
+  color: #333;
+}
+
+h1,
+h2 {
+  color: #2c3e50;
+}
+
+/* Form styling */
+form {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  margin-bottom: 40px;
+}
+
+form input[type='text'],
+form textarea,
+form select {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  box-sizing: border-box;
+  transition: border-color 0.3s;
+}
+
+form input[type='text']:focus,
+form textarea:focus,
+form select:focus {
+  border-color: #3498db;
+  outline: none;
+}
+
+form textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+form button {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+form button:hover {
+  background-color: #2980b9;
+}
+
+/* Task cards */
+.task-card {
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.task-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+}
+
+.task-card h2 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 20px;
+  color: #2c3e50;
+}
+
+.task-card p {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+.task-card ul {
+  margin: 5px 0 10px 20px;
+  padding: 0;
+}
+
+.task-card li {
+  margin-bottom: 3px;
+}
+
+/* Delete button */
+.delete-btn {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.delete-btn:hover {
+  background-color: #c0392b;
+}
+
+/* Responsive */
+@media (max-width: 700px) {
+  .task-card {
+    flex-direction: column;
+  }
+
+  .task-card button {
+    margin-top: 10px;
+    align-self: flex-end;
+  }
+}

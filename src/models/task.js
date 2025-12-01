@@ -1,5 +1,21 @@
 const mongoose = require('mongoose');
 
+const subTaskSchema = new mongoose.Schema({
+  titre: {
+    type: String,
+    required: true,
+    default: 'New Task',
+  },
+  echeance: {
+    type: Date,
+  },
+  statut: {
+    type: String,
+    enum: ['à faire', 'en cours', 'terminée', 'annulée'],
+    default: 'à faire',
+  }
+});
+
 const taskSchema = new mongoose.Schema({
   titre: {
     type: String,
@@ -35,7 +51,7 @@ const taskSchema = new mongoose.Schema({
     type: [String],
   },
   sousTaches: {
-    type: [this],
+    type: [subTaskSchema],
   },
   commentaires: {
     type: [String],

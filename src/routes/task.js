@@ -15,7 +15,7 @@ router.put('/:id', async (req, res) => {
   try {
     const task = await Task.findByIdAndUpdate(req.params.id, req.body);
 
-    res.json(task);
+    res.redirect(303, `/`);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -24,7 +24,7 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const task = await Task.deleteOne({ _id: req.params.id });
-    res.json(task);
+    res.redirect(303, '/');
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -100,5 +100,18 @@ router.put('/:id/updateSubtask', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+router.post('/task/:id/subtask', async (req, res) => {
+  const { titre, echeance, statut } = req.body;
+  try {
+    await Task.findByIdAndUpdate(req.params.id, {
+      $push: { sousTaches: { titre, echeance, statut } }
+    });
+    res.status(200).send('Sous-tâche ajoutée');
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
 
 module.exports = router;

@@ -1,0 +1,248 @@
+<h2>➕ Nouvelle tâche</h2>
+
+<form id="create-task-form" method="POST" action="/api/tasks">
+  <input type="text" name="titre" placeholder="Titre" required />
+  <textarea name="description" placeholder="Description" required></textarea>
+
+  <label>Statut :</label>
+  <select name="statut">
+    <option value="à faire">À faire</option>
+    <option value="en cours">En cours</option>
+    <option value="terminée">Terminée</option>
+    <option value="annulée">Annulée</option>
+  </select>
+
+  <label>Catégorie :</label>
+  <select name="categorie">
+    <option value="perso">Perso</option>
+    <option value="travail">Travail</option>
+    <option value="projet">Projet</option>
+    <option value="autre">Autre</option>
+  </select>
+
+  <label>Priorité :</label>
+  <select name="priorite">
+    <option value="1">1 (faible)</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4">4 (haute)</option>
+  </select>
+
+  <label>Étiquettes (séparées par des virgules) :</label>
+  <input type="text" name="etiquettes" placeholder="tag1, tag2" />
+
+  <label>Commentaires (séparés par des virgules) :</label>
+  <input type="text" name="commentaires" placeholder="comment1, comment2" />
+
+  <label>Échéance :</label>
+  <input type="date" name="echeance" />
+
+  <br>
+  <br>
+  <button type="submit">Créer</button>
+</form>
+
+
+<h1>🗂️ Liste des tâches</h1>
+
+{{#each tasks}}
+  <div class='task-card' id='task-{{this._id}}'>
+    <div class='task-display'>
+      <h2>{{this.titre}}</h2>
+
+      <p><strong>Description :</strong> {{this.description}}</p>
+      <p><strong>Statut :</strong> {{this.statut}}</p>
+      <p><strong>Priorité :</strong> {{this.priorite}}</p>
+      <p><strong>Catégorie :</strong> {{this.categorie}}</p>
+      <p><strong>Date de création :</strong> {{this.dateCreation}}</p>
+      <p><strong>Échéance :</strong> {{this.echeance}}</p>
+
+      {{#if this.etiquettes}}
+        <p><strong>Étiquettes :</strong></p>
+        <ul>
+          {{#each this.etiquettes}}
+            <li>{{this}}</li>
+          {{/each}}
+        </ul>
+      {{/if}}
+
+      {{#if this.commentaires}}
+        <p><strong>Commentaires :</strong></p>
+        <ul>
+          {{#each this.commentaires}}
+            <li>{{this}}</li>
+          {{/each}}
+        </ul>
+      {{/if}}
+
+      {{#if this.sousTaches}}
+        <p><strong>Sous-tâches :</strong></p>
+        <table border="1" cellpadding="5" cellspacing="0">
+          <thead>
+            <tr>
+              <th>Titre</th>
+              <th>Statut</th>
+              <th>Échéance</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each this.sousTaches}}
+              <tr>
+                <td>{{this.titre}}</td>
+                <td>{{this.statut}}</td>
+                <td>{{this.echeance}}</td>
+              </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      {{/if}}
+    </div>
+
+    <div class='task-buttons'>
+      <button onclick="editTask('{{this._id}}')">Modifier</button>
+      <button class='delete-btn' onclick="if(confirm('Voulez-vous vraiment supprimer cette tâche ?')) deleteTask('{{this._id}}')">Supprimer</button>
+      <button onclick="addSubTask('{{this._id}}')">➕ Ajouter une sous-tâche</button>
+    </div>
+  </div>
+{{/each}}
+
+
+
+<hr />
+
+<script>
+  async function deleteTask(id) { 
+    try { 
+      const response = await fetch(`/api/task/${id}`, {
+        method: 'DELETE' 
+      }); 
+      if (response.redirected) {
+        window.location.href = response.url; 
+      } else { 
+        window.location.reload(); 
+      } 
+    }
+    catch (err) { 
+      alert('Erreur lors de la suppression'); 
+      console.error(err); 
+    } 
+  }
+
+  function editTask(id) {
+    const taskCard = document.getElementById(`task-${id}`);
+    const display = taskCard.querySelector('.task-display');
+
+    // Get current values
+    const titre = display.querySelector('h2').innerText;
+    const description = display.querySelector('p:nth-of-type(1)').innerText.replace('Description : ', '');
+    const statut = display.querySelector('p:nth-of-type(2)').innerText.replace('Statut : ', '');
+    const priorite = display.querySelector('p:nth-of-type(3)').innerText.replace('Priorité : ', '');
+    const categorie = display.querySelector('p:nth-of-type(4)').innerText.replace('Catégorie : ', '');
+
+    // Replace task display with an editable form
+    display.innerHTML = `
+      <form onsubmit="event.preventDefault(); saveTask('${id}', this)">
+        <input type='text' name='titre' value='${titre}' required />
+        <textarea name='description' required>${description}</textarea>
+
+        <select name='statut'>
+          <option value='à faire' ${statut==='à faire'?'selected':''}>À faire</option>
+          <option value='en cours' ${statut==='en cours'?'selected':''}>En cours</option>
+          <option value='terminée' ${statut==='terminée'?'selected':''}>Terminée</option>
+          <option value='annulée' ${statut==='annulée'?'selected':''}>Annulée</option>
+        </select>
+
+        <select name='categorie'>
+          <option value='perso' ${categorie==='perso'?'selected':''}>Perso</option>
+          <option value='travail' ${categorie==='travail'?'selected':''}>Travail</option>
+          <option value='projet' ${categorie==='projet'?'selected':''}>Projet</option>
+          <option value='autre' ${categorie==='autre'?'selected':''}>Autre</option>
+        </select>
+
+        <select name='priorite'>
+          <option value='1' ${priorite==='1'?'selected':''}>1 (faible)</option>
+          <option value='2' ${priorite==='2'?'selected':''}>2</option>
+          <option value='3' ${priorite==='3'?'selected':''}>3</option>
+          <option value='4' ${priorite==='4'?'selected':''}>4 (haute)</option>
+        </select>
+
+        <button type='submit'>Enregistrer</button>
+        <button type='button' onclick="cancelEdit('${id}')">Annuler</button>
+      </form>
+    `;
+  }
+
+  function cancelEdit(id) {
+    // Reload page to restore original view (simplest method)
+    window.location.reload();
+  }
+
+  function saveTask(id, form) {
+    const data = {
+      titre: form.titre.value,
+      description: form.description.value,
+      statut: form.statut.value,
+      categorie: form.categorie.value,
+      priorite: form.priorite.value
+    };
+    updateTask(id, data);
+  }
+
+  async function updateTask(id, data) {
+    try {
+      const response = await fetch(`/api/task/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (response.redirected) {
+        window.location.href = response.url;
+      } else {
+        window.location.reload();
+      }
+    } catch (err) {
+      alert('Erreur lors de la mise à jour');
+      console.error(err);
+    }
+  }
+
+function addSubTask(taskId) {
+    const taskCard = document.getElementById(`task-${taskId}`);
+    const subTaskForm = document.createElement('form');
+    subTaskForm.innerHTML = `
+      <input type="text" name="titre" placeholder="Titre de la sous-tâche" required />
+      <input type="date" name="echeance" placeholder="Échéance" />
+      <select name="statut">
+        <option value="à faire">À faire</option>
+        <option value="en cours">En cours</option>
+        <option value="terminée">Terminée</option>
+        <option value="annulée">Annulée</option>
+      </select>
+      <button type="submit">Ajouter</button>
+      <button type="button" onclick="this.parentElement.remove()">Annuler</button>
+    `;
+    subTaskForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const data = {
+        titre: subTaskForm.titre.value,
+        echeance: subTaskForm.echeance.value,
+        statut: subTaskForm.statut.value
+      };
+
+      try {
+        const response = await fetch(`/api/task/${taskId}/subtask`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (response.ok) window.location.reload();
+      } catch (err) {
+        alert('Erreur lors de l\'ajout de la sous-tâche');
+        console.error(err);
+      }
+    };
+
+    // Insert the form under the task card
+    taskCard.appendChild(subTaskForm);
+  }
+</script>
