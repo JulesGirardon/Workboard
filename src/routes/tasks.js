@@ -52,6 +52,15 @@ router.get('/', async (req, res) => {
       }
     }
 
+    if (req.query.etiquette) {
+      if (Array.isArray(req.query.etiquette)) {
+        filter.etiquettes = { $in: req.query.etiquette };
+      } else {
+        filter.etiquettes = req.query.etiquette;
+      }
+    }
+
+
     if (req.query.avant) {
       filter.echeance = { $lte: new Date(req.query.avant) };
     }
@@ -81,5 +90,7 @@ router.get('/', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+
 
 module.exports = router;

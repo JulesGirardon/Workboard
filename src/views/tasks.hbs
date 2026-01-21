@@ -57,23 +57,34 @@
       <p><strong>Date de création :</strong> {{this.dateCreation}}</p>
       <p><strong>Échéance :</strong> {{this.echeance}}</p>
 
-      {{#if this.etiquettes}}
+      {{#if this.etiquettes.length}}
         <p><strong>Étiquettes :</strong></p>
         <ul>
           {{#each this.etiquettes}}
-            <li>{{this}}</li>
+            {{#if this}}
+              <li>{{this}}</li>
+            {{/if}}
           {{/each}}
         </ul>
       {{/if}}
 
-      {{#if this.commentaires}}
+      {{#if this.commentaires.length}}
         <p><strong>Commentaires :</strong></p>
         <ul>
           {{#each this.commentaires}}
-            <li>{{this}}</li>
+            {{#if this}}
+              <li>{{this}}</li>
+            {{/if}}
           {{/each}}
         </ul>
       {{/if}}
+
+      
+      <form onsubmit="addComment('{{this._id}}', this)">
+        <input type="text" name="commentaire" placeholder="Ajouter un commentaire" required />
+        <button type="submit">💬</button>
+      </form>
+
 
       {{#if this.sousTaches}}
         <p><strong>Sous-tâches :</strong></p>
@@ -83,14 +94,19 @@
               <th>Titre</th>
               <th>Statut</th>
               <th>Échéance</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {{#each this.sousTaches}}
-              <tr>
+              <tr id="subtask-{{this._id}}">
                 <td>{{this.titre}}</td>
                 <td>{{this.statut}}</td>
                 <td>{{this.echeance}}</td>
+                <td>
+                  <button onclick="editSubTask('{{../_id}}','{{this._id}}')">✏️</button>
+                  <button onclick="deleteSubTask('{{../_id}}','{{this._id}}')">🗑️</button>
+                </td>
               </tr>
             {{/each}}
           </tbody>
@@ -206,43 +222,106 @@
     }
   }
 
+  async function addComment(taskId, form) {
+  await fetch(`/api/task/${taskId}/postComment`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ commentaire: form.commentaire.value })
+  });
+  window.location.reload();
+}
+
 function addSubTask(taskId) {
-    const taskCard = document.getElementById(`task-${taskId}`);
-    const subTaskForm = document.createElement('form');
-    subTaskForm.innerHTML = `
-      <input type="text" name="titre" placeholder="Titre de la sous-tâche" required />
-      <input type="date" name="echeance" placeholder="Échéance" />
+  const container = document.querySelector(`#task-${taskId} .task-display`);
+  container.insertAdjacentHTML(
+    'beforeend',
+    subTaskFormHTML({ taskId })
+  );
+}
+
+
+function editSubTask(taskId, subtaskId) {
+  const row = document.getElementById(`subtask-${subtaskId}`);
+  const titre = row.children[0].innerText;
+  const statut = row.children[1].innerText;
+  const echeance = row.children[2].innerText;
+
+  row.innerHTML = `
+    <td colspan="4">
+      ${subTaskFormHTML({
+        taskId,
+        subtask: {
+          _id: subtaskId,
+          titre,
+          statut,
+          echeance
+        }
+      })}
+    </td>
+  `;
+}
+
+
+function deleteSubTask(taskId, subtaskId) {
+  if (!confirm('Supprimer cette sous-tâche ?')) return;
+
+  fetch(`/api/task/${taskId}/subtask/${subtaskId}`, {
+    method: 'DELETE'
+  }).then(() => window.location.reload());
+}
+
+function subTaskFormHTML({ taskId, subtask = null }) {
+  return `
+    <form onsubmit="event.preventDefault(); saveSubTask('${taskId}', '${subtask?._id || ''}', this)">
+      <input
+        type="text"
+        name="titre"
+        placeholder="Titre"
+        value="${subtask?.titre || ''}"
+        required
+      />
+
       <select name="statut">
-        <option value="à faire">À faire</option>
-        <option value="en cours">En cours</option>
-        <option value="terminée">Terminée</option>
-        <option value="annulée">Annulée</option>
+        <option value="à faire" ${subtask?.statut === 'à faire' ? 'selected' : ''}>À faire</option>
+        <option value="en cours" ${subtask?.statut === 'en cours' ? 'selected' : ''}>En cours</option>
+        <option value="terminée" ${subtask?.statut === 'terminée' ? 'selected' : ''}>Terminée</option>
+        <option value="annulée" ${subtask?.statut === 'annulée' ? 'selected' : ''}>Annulée</option>
       </select>
-      <button type="submit">Ajouter</button>
-      <button type="button" onclick="this.parentElement.remove()">Annuler</button>
-    `;
-    subTaskForm.onsubmit = async (e) => {
-      e.preventDefault();
-      const data = {
-        titre: subTaskForm.titre.value,
-        echeance: subTaskForm.echeance.value,
-        statut: subTaskForm.statut.value
-      };
 
-      try {
-        const response = await fetch(`/api/task/${taskId}/subtask`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        });
-        if (response.ok) window.location.reload();
-      } catch (err) {
-        alert('Erreur lors de l\'ajout de la sous-tâche');
-        console.error(err);
-      }
-    };
+      <input
+        type="date"
+        name="echeance"
+        value="${subtask?.echeance ? subtask.echeance.split('T')[0] : ''}"
+      />
 
-    // Insert the form under the task card
-    taskCard.appendChild(subTaskForm);
-  }
+      <button type="submit">💾</button>
+      <button type="button" onclick="window.location.reload()">Annuler</button>
+    </form>
+  `;
+}
+
+async function saveSubTask(taskId, subtaskId, form) {
+  const data = {
+    titre: form.titre.value,
+    statut: form.statut.value,
+    echeance: form.echeance.value || null
+  };
+
+  const url = subtaskId
+    ? `/api/task/${taskId}/subtask/${subtaskId}`
+    : `/api/task/${taskId}/subtask`;
+
+  const method = subtaskId ? 'PUT' : 'POST';
+
+  await fetch(url, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+
+  window.location.reload();
+}
+
+
+
 </script>
