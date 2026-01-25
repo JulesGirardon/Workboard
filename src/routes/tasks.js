@@ -12,9 +12,13 @@ router.post('/', async (req, res) => {
       statut: req.body.statut,
       priorite: req.body.priorite,
       categorie: req.body.categorie,
-      etiquettes: req.body.etiquettes,
+      etiquettes: req.body.etiquettes
+      ? req.body.etiquettes.split(',').map(e => e.trim())
+      : [],
       sousTaches: req.body.sousTaches,
-      commentaires: req.body.commentaires,
+      commentaires: req.body.commentaires
+      ? req.body.commentaires.split(',').map(c => c.trim())
+      : [],
     });
     await task.save({ validateBeforeSave: true });
 
@@ -61,13 +65,12 @@ router.get('/', async (req, res) => {
     }
 
 
-    if (req.query.avant) {
-      filter.echeance = { $lte: new Date(req.query.avant) };
-    }
+    if (req.query.avant || req.query.apres) {
+  filter.echeance = {};
+  if (req.query.avant) filter.echeance.$lte = new Date(req.query.avant);
+  if (req.query.apres) filter.echeance.$gte = new Date(req.query.apres);
+}
 
-    if (req.query.apres) {
-      filter.echeance = { $gte: new Date(req.query.apres) };
-    }
 
     if (req.query.q) {
       filter.$or = [

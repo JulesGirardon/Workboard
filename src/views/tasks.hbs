@@ -1,327 +1,602 @@
-<h2>➕ Nouvelle tâche</h2>
+<h1>🗂️ Gestionnaire de tâches</h1>
 
-<form id="create-task-form" method="POST" action="/api/tasks">
-  <input type="text" name="titre" placeholder="Titre" required />
-  <textarea name="description" placeholder="Description" required></textarea>
-
-  <label>Statut :</label>
-  <select name="statut">
-    <option value="à faire">À faire</option>
-    <option value="en cours">En cours</option>
-    <option value="terminée">Terminée</option>
-    <option value="annulée">Annulée</option>
-  </select>
-
-  <label>Catégorie :</label>
-  <select name="categorie">
-    <option value="perso">Perso</option>
-    <option value="travail">Travail</option>
-    <option value="projet">Projet</option>
-    <option value="autre">Autre</option>
-  </select>
-
-  <label>Priorité :</label>
-  <select name="priorite">
-    <option value="1">1 (faible)</option>
-    <option value="2">2</option>
-    <option value="3">3</option>
-    <option value="4">4 (haute)</option>
-  </select>
-
-  <label>Étiquettes (séparées par des virgules) :</label>
-  <input type="text" name="etiquettes" placeholder="tag1, tag2" />
-
-  <label>Commentaires (séparés par des virgules) :</label>
-  <input type="text" name="commentaires" placeholder="comment1, comment2" />
-
-  <label>Échéance :</label>
-  <input type="date" name="echeance" />
-
-  <br>
-  <br>
-  <button type="submit">Créer</button>
-</form>
-
-
-<h1>🗂️ Liste des tâches</h1>
-
-{{#each tasks}}
-  <div class='task-card' id='task-{{this._id}}'>
-    <div class='task-display'>
-      <h2>{{this.titre}}</h2>
-
-      <p><strong>Description :</strong> {{this.description}}</p>
-      <p><strong>Statut :</strong> {{this.statut}}</p>
-      <p><strong>Priorité :</strong> {{this.priorite}}</p>
-      <p><strong>Catégorie :</strong> {{this.categorie}}</p>
-      <p><strong>Date de création :</strong> {{this.dateCreation}}</p>
-      <p><strong>Échéance :</strong> {{this.echeance}}</p>
-
-      {{#if this.etiquettes.length}}
-        <p><strong>Étiquettes :</strong></p>
-        <ul>
-          {{#each this.etiquettes}}
-            {{#if this}}
-              <li>{{this}}</li>
-            {{/if}}
-          {{/each}}
-        </ul>
-      {{/if}}
-
-      {{#if this.commentaires.length}}
-        <p><strong>Commentaires :</strong></p>
-        <ul>
-          {{#each this.commentaires}}
-            {{#if this}}
-              <li>{{this}}</li>
-            {{/if}}
-          {{/each}}
-        </ul>
-      {{/if}}
-
+    <!-- Section des filtres -->
+    <div class="filters-section">
+      <h2>🔍 Filtres</h2>
       
-      <form onsubmit="addComment('{{this._id}}', this)">
-        <input type="text" name="commentaire" placeholder="Ajouter un commentaire" required />
-        <button type="submit">💬</button>
-      </form>
+      <div class="filters-grid">
+        <div class="filter-group">
+          <label for="filter-statut">Statut</label>
+          <select id="filter-statut">
+            <option value="">Tous les statuts</option>
+            <option value="à faire">À faire</option>
+            <option value="en cours">En cours</option>
+            <option value="terminée">Terminée</option>
+            <option value="annulée">Annulée</option>
+          </select>
+        </div>
 
+        <div class="filter-group">
+          <label for="filter-priorite">Priorité</label>
+          <select id="filter-priorite">
+            <option value="">Toutes les priorités</option>
+            <option value="1">1 (faible)</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4 (haute)</option>
+          </select>
+        </div>
 
-      {{#if this.sousTaches}}
-        <p><strong>Sous-tâches :</strong></p>
-        <table border="1" cellpadding="5" cellspacing="0">
-          <thead>
-            <tr>
-              <th>Titre</th>
-              <th>Statut</th>
-              <th>Échéance</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {{#each this.sousTaches}}
-              <tr id="subtask-{{this._id}}">
-                <td>{{this.titre}}</td>
-                <td>{{this.statut}}</td>
-                <td>{{this.echeance}}</td>
-                <td>
-                  <button onclick="editSubTask('{{../_id}}','{{this._id}}')">✏️</button>
-                  <button onclick="deleteSubTask('{{../_id}}','{{this._id}}')">🗑️</button>
-                </td>
-              </tr>
-            {{/each}}
-          </tbody>
-        </table>
-      {{/if}}
+        <div class="filter-group">
+          <label for="filter-categorie">Catégorie</label>
+          <select id="filter-categorie">
+            <option value="">Toutes les catégories</option>
+            <option value="perso">Perso</option>
+            <option value="travail">Travail</option>
+            <option value="projet">Projet</option>
+            <option value="autre">Autre</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="filter-etiquette">Étiquette</label>
+          <input type="text" id="filter-etiquette" placeholder="Rechercher une étiquette...">
+        </div>
+
+        <div class="filter-group">
+          <label for="filter-avant">Échéance avant le</label>
+          <input type="date" id="filter-avant">
+        </div>
+
+        <div class="filter-group">
+          <label for="filter-apres">Échéance après le</label>
+          <input type="date" id="filter-apres">
+        </div>
+      </div>
+
+      <div class="filter-buttons">
+        <button class="btn btn-primary" onclick="applyFilters()">Appliquer les filtres</button>
+        <button class="btn btn-secondary" onclick="resetFilters()">Réinitialiser</button>
+      </div>
+
+      <div class="active-filters" id="active-filters"></div>
     </div>
 
-    <div class='task-buttons'>
-      <button onclick="editTask('{{this._id}}')">Modifier</button>
-      <button class='delete-btn' onclick="if(confirm('Voulez-vous vraiment supprimer cette tâche ?')) deleteTask('{{this._id}}')">Supprimer</button>
-      <button onclick="addSubTask('{{this._id}}')">➕ Ajouter une sous-tâche</button>
+    <hr>
+
+    <!-- Formulaire de création -->
+    <h2>➕ Nouvelle tâche</h2>
+    <form id="create-task-form" onsubmit="createTask(event)">
+      <input type="text" id="titre" placeholder="Titre" required />
+      <textarea id="description" placeholder="Description" required></textarea>
+
+      <label>Statut :</label>
+      <select id="statut">
+        <option value="à faire">À faire</option>
+        <option value="en cours">En cours</option>
+        <option value="terminée">Terminée</option>
+        <option value="annulée">Annulée</option>
+      </select>
+
+      <label>Catégorie :</label>
+      <select id="categorie">
+        <option value="perso">Perso</option>
+        <option value="travail">Travail</option>
+        <option value="projet">Projet</option>
+        <option value="autre">Autre</option>
+      </select>
+
+      <label>Priorité :</label>
+      <select id="priorite">
+        <option value="1">1 (faible)</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4 (haute)</option>
+      </select>
+
+      <label>Étiquettes (séparées par des virgules) :</label>
+      <input type="text" id="etiquettes" placeholder="tag1, tag2" />
+
+      <label>Échéance :</label>
+      <input type="date" id="echeance" />
+
+      <button type="submit">Créer la tâche</button>
+    </form>
+
+    <hr>
+
+    <!-- Liste des tâches -->
+    <h2>📋 Liste des tâches</h2>
+    <div class="tasks-grid" id="tasks-container">
+      <div class="no-tasks">Chargement des tâches...</div>
     </div>
   </div>
-{{/each}}
 
+  <script>
+    let allTasks = [];
+    let currentFilters = {};
 
-
-<hr />
-
-<script>
-  async function deleteTask(id) { 
-    try { 
-      const response = await fetch(`/api/task/${id}`, {
-        method: 'DELETE' 
-      }); 
-      if (response.redirected) {
-        window.location.href = response.url; 
-      } else { 
-        window.location.reload(); 
-      } 
+    // Charger les tâches au démarrage
+    async function loadTasks() {
+      try {
+        const response = await fetch('/api/tasks');
+        allTasks = await response.json();
+        displayTasks(allTasks);
+      } catch (error) {
+        console.error('Erreur lors du chargement des tâches:', error);
+        document.getElementById('tasks-container').innerHTML = 
+          '<div class="no-tasks">Erreur lors du chargement des tâches</div>';
+      }
     }
-    catch (err) { 
-      alert('Erreur lors de la suppression'); 
-      console.error(err); 
-    } 
-  }
 
-  function editTask(id) {
-    const taskCard = document.getElementById(`task-${id}`);
-    const display = taskCard.querySelector('.task-display');
+    // Afficher les tâches
+    function displayTasks(tasks) {
+      const container = document.getElementById('tasks-container');
+      
+      if (tasks.length === 0) {
+        container.innerHTML = '<div class="no-tasks">Aucune tâche à afficher</div>';
+        return;
+      }
 
-    // Get current values
-    const titre = display.querySelector('h2').innerText;
-    const description = display.querySelector('p:nth-of-type(1)').innerText.replace('Description : ', '');
-    const statut = display.querySelector('p:nth-of-type(2)').innerText.replace('Statut : ', '');
-    const priorite = display.querySelector('p:nth-of-type(3)').innerText.replace('Priorité : ', '');
-    const categorie = display.querySelector('p:nth-of-type(4)').innerText.replace('Catégorie : ', '');
+      container.innerHTML = tasks.map(task => `
+        <div class="task-card" id="task-${task._id}">
+          <div class="task-display">
+            <h3>${task.titre}</h3>
+            <p><strong>Description :</strong> ${task.description}</p>
+            
+            <div class="task-meta">
+              <span class="badge badge-status">${task.statut}</span>
+              <span class="badge badge-priority">Priorité ${task.priorite}</span>
+              <span class="badge badge-category">${task.categorie}</span>
+            </div>
 
-    // Replace task display with an editable form
-    display.innerHTML = `
-      <form onsubmit="event.preventDefault(); saveTask('${id}', this)">
-        <input type='text' name='titre' value='${titre}' required />
-        <textarea name='description' required>${description}</textarea>
+            <p><strong>Date de création :</strong> ${task.dateCreation ? new Date(task.dateCreation).toLocaleDateString('fr-FR') : 'N/A'}</p>
+            ${task.echeance ? `<p><strong>📅 Échéance :</strong> ${new Date(task.echeance).toLocaleDateString('fr-FR')}</p>` : ''}
+            
+            ${task.etiquettes && task.etiquettes.length > 0 ? `
+              <div class="tags">
+                <strong>Étiquettes :</strong>
+                ${task.etiquettes.filter(t => t).map(tag => `<span class="tag">#${tag}</span>`).join('')}
+              </div>
+            ` : ''}
 
-        <select name='statut'>
-          <option value='à faire' ${statut==='à faire'?'selected':''}>À faire</option>
-          <option value='en cours' ${statut==='en cours'?'selected':''}>En cours</option>
-          <option value='terminée' ${statut==='terminée'?'selected':''}>Terminée</option>
-          <option value='annulée' ${statut==='annulée'?'selected':''}>Annulée</option>
-        </select>
+            ${task.commentaires && task.commentaires.length > 0 ? `
+              <div class="comments-section">
+                <p><strong>💬 Commentaires :</strong></p>
+                <ul class="comments-list">
+                  ${task.commentaires.filter(c => c).map((c, index) => `
+                    <li class="comment-item">
+                      <span class="comment-text">${c}</span>
+                      <button class="comment-delete-btn" onclick="deleteComment('${task._id}', ${index})">🗑️</button>
+                    </li>
+                  `).join('')}
+                </ul>
+              </div>
+            ` : ''}
 
-        <select name='categorie'>
-          <option value='perso' ${categorie==='perso'?'selected':''}>Perso</option>
-          <option value='travail' ${categorie==='travail'?'selected':''}>Travail</option>
-          <option value='projet' ${categorie==='projet'?'selected':''}>Projet</option>
-          <option value='autre' ${categorie==='autre'?'selected':''}>Autre</option>
-        </select>
+            <form class="add-comment-form" onsubmit="addComment(event, '${task._id}')">
+              <input type="text" name="commentaire" placeholder="Ajouter un commentaire..." required />
+              <button type="submit">💬</button>
+            </form>
 
-        <select name='priorite'>
-          <option value='1' ${priorite==='1'?'selected':''}>1 (faible)</option>
-          <option value='2' ${priorite==='2'?'selected':''}>2</option>
-          <option value='3' ${priorite==='3'?'selected':''}>3</option>
-          <option value='4' ${priorite==='4'?'selected':''}>4 (haute)</option>
-        </select>
+            ${task.sousTaches && task.sousTaches.length > 0 ? `
+              <p><strong>Sous-tâches :</strong></p>
+              <table border="1" cellpadding="5" cellspacing="0" style="width: 100%; margin-top: 10px;">
+                <thead>
+                  <tr>
+                    <th>Titre</th>
+                    <th>Statut</th>
+                    <th>Échéance</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${task.sousTaches.map(st => `
+                    <tr id="subtask-${st._id}">
+                      <td>${st.titre}</td>
+                      <td>${st.statut}</td>
+                      <td>${st.echeance ? new Date(st.echeance).toLocaleDateString('fr-FR') : ''}</td>
+                      <td>
+                        <button onclick="editSubTask('${task._id}','${st._id}')">✏️</button>
+                        <button onclick="deleteSubTask('${task._id}','${st._id}')">🗑️</button>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            ` : ''}
+          </div>
 
-        <button type='submit'>Enregistrer</button>
-        <button type='button' onclick="cancelEdit('${id}')">Annuler</button>
-      </form>
-    `;
-  }
+          <div class="task-actions">
+            <button class="btn-edit" onclick="editTask('${task._id}')">✏️ Modifier</button>
+            <button class="btn-delete" onclick="deleteTask('${task._id}')">🗑️ Supprimer</button>
+            <button class="btn btn-primary" onclick="addSubTask('${task._id}')">➕ Ajouter une sous-tâche</button>
+          </div>
+        </div>
+      `).join('');
+    }
 
-  function cancelEdit(id) {
-    // Reload page to restore original view (simplest method)
-    window.location.reload();
-  }
+    // Appliquer les filtres
+    function applyFilters() {
+      const params = new URLSearchParams();
+      currentFilters = {};
 
-  function saveTask(id, form) {
-    const data = {
-      titre: form.titre.value,
-      description: form.description.value,
-      statut: form.statut.value,
-      categorie: form.categorie.value,
-      priorite: form.priorite.value
-    };
-    updateTask(id, data);
-  }
+      // Statut
+      const statut = document.getElementById('filter-statut').value;
+      if (statut) {
+        params.append('statut', statut);
+        currentFilters.statut = [statut];
+      }
 
-  async function updateTask(id, data) {
-    try {
-      const response = await fetch(`/api/task/${id}`, {
-        method: 'PUT',
+      // Priorité
+      const priorite = document.getElementById('filter-priorite').value;
+      if (priorite) {
+        params.append('priorite', priorite);
+        currentFilters.priorite = [priorite];
+      }
+
+      // Catégorie
+      const categorie = document.getElementById('filter-categorie').value;
+      if (categorie) {
+        params.append('categorie', categorie);
+        currentFilters.categorie = [categorie];
+      }
+
+      // Étiquette
+      const etiquette = document.getElementById('filter-etiquette').value.trim();
+      if (etiquette) {
+        params.append('etiquette', etiquette);
+        currentFilters.etiquette = etiquette;
+      }
+
+      // Échéance avant
+      const avant = document.getElementById('filter-avant').value;
+      if (avant) {
+        params.append('avant', avant);
+        currentFilters.avant = avant;
+      }
+
+      // Échéance après
+      const apres = document.getElementById('filter-apres').value;
+      if (apres) {
+        params.append('apres', apres);
+        currentFilters.apres = apres;
+      }
+
+      // Charger les tâches filtrées
+      loadFilteredTasks(params);
+      displayActiveFilters();
+    }
+
+    // Charger les tâches filtrées
+    async function loadFilteredTasks(params) {
+      try {
+        const url = params.toString() ? `/api/tasks?${params.toString()}` : '/api/tasks';
+        const response = await fetch(url);
+        const tasks = await response.json();
+        displayTasks(tasks);
+      } catch (error) {
+        console.error('Erreur lors du filtrage:', error);
+      }
+    }
+
+    // Afficher les filtres actifs
+    function displayActiveFilters() {
+      const container = document.getElementById('active-filters');
+      const filters = [];
+
+      if (currentFilters.statut) {
+        currentFilters.statut.forEach(s => {
+          filters.push({ type: 'statut', value: s, label: `Statut: ${s}` });
+        });
+      }
+
+      if (currentFilters.priorite) {
+        currentFilters.priorite.forEach(p => {
+          filters.push({ type: 'priorite', value: p, label: `Priorité: ${p}` });
+        });
+      }
+
+      if (currentFilters.categorie) {
+        currentFilters.categorie.forEach(c => {
+          filters.push({ type: 'categorie', value: c, label: `Catégorie: ${c}` });
+        });
+      }
+
+      if (currentFilters.etiquette) {
+        filters.push({ type: 'etiquette', value: currentFilters.etiquette, label: `Étiquette: ${currentFilters.etiquette}` });
+      }
+
+      if (currentFilters.avant) {
+        filters.push({ type: 'avant', value: currentFilters.avant, label: `Avant: ${currentFilters.avant}` });
+      }
+
+      if (currentFilters.apres) {
+        filters.push({ type: 'apres', value: currentFilters.apres, label: `Après: ${currentFilters.apres}` });
+      }
+
+      if (filters.length === 0) {
+        container.innerHTML = '';
+        return;
+      }
+
+      container.innerHTML = filters.map(f => `
+        <div class="filter-tag">
+          ${f.label}
+          <button onclick="removeFilter('${f.type}', '${f.value}')">✕</button>
+        </div>
+      `).join('');
+    }
+
+    // Supprimer un filtre spécifique
+    function removeFilter(type, value) {
+      if (type === 'statut' || type === 'priorite' || type === 'categorie') {
+        document.getElementById(`filter-${type}`).value = '';
+      } else {
+        document.getElementById(`filter-${type}`).value = '';
+      }
+      applyFilters();
+    }
+
+    // Réinitialiser les filtres
+    function resetFilters() {
+      document.getElementById('filter-statut').value = '';
+      document.getElementById('filter-priorite').value = '';
+      document.getElementById('filter-categorie').value = '';
+      document.getElementById('filter-etiquette').value = '';
+      document.getElementById('filter-avant').value = '';
+      document.getElementById('filter-apres').value = '';
+      currentFilters = {};
+      loadTasks();
+      document.getElementById('active-filters').innerHTML = '';
+    }
+
+    // Créer une tâche
+    async function createTask(event) {
+      event.preventDefault();
+      
+      const task = {
+        titre: document.getElementById('titre').value,
+        description: document.getElementById('description').value,
+        statut: document.getElementById('statut').value,
+        categorie: document.getElementById('categorie').value,
+        priorite: document.getElementById('priorite').value,
+        etiquettes: document.getElementById('etiquettes').value,
+        echeance: document.getElementById('echeance').value
+      };
+
+      try {
+        await fetch('/api/tasks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams(task)
+        });
+        
+        document.getElementById('create-task-form').reset();
+        loadTasks();
+      } catch (error) {
+        console.error('Erreur lors de la création:', error);
+        alert('Erreur lors de la création de la tâche');
+      }
+    }
+
+    // Supprimer une tâche
+    async function deleteTask(id) {
+      if (!confirm('Voulez-vous vraiment supprimer cette tâche ?')) return;
+      
+      try {
+        await fetch(`/api/task/${id}`, { method: 'DELETE' });
+        loadTasks();
+      } catch (error) {
+        console.error('Erreur lors de la suppression:', error);
+        alert('Erreur lors de la suppression');
+      }
+    }
+
+    // Modifier une tâche
+    function editTask(id) {
+      const taskCard = document.querySelector(`#task-${id}`);
+      const display = taskCard.querySelector('.task-display');
+      
+      // Récupérer les valeurs actuelles
+      const titre = display.querySelector('h3').innerText;
+      const description = display.querySelector('p:nth-of-type(1)').innerText.replace('Description : ', '');
+      
+      // Trouver la tâche dans allTasks
+      const task = allTasks.find(t => t._id === id);
+      if (!task) return;
+
+      // Remplacer l'affichage par un formulaire d'édition
+      display.innerHTML = `
+        <form onsubmit="event.preventDefault(); saveTask('${id}', this)">
+          <input type='text' name='titre' value='${titre}' required />
+          <textarea name='description' required>${description}</textarea>
+
+          <select name='statut'>
+            <option value='à faire' ${task.statut==='à faire'?'selected':''}>À faire</option>
+            <option value='en cours' ${task.statut==='en cours'?'selected':''}>En cours</option>
+            <option value='terminée' ${task.statut==='terminée'?'selected':''}>Terminée</option>
+            <option value='annulée' ${task.statut==='annulée'?'selected':''}>Annulée</option>
+          </select>
+
+          <select name='categorie'>
+            <option value='perso' ${task.categorie==='perso'?'selected':''}>Perso</option>
+            <option value='travail' ${task.categorie==='travail'?'selected':''}>Travail</option>
+            <option value='projet' ${task.categorie==='projet'?'selected':''}>Projet</option>
+            <option value='autre' ${task.categorie==='autre'?'selected':''}>Autre</option>
+          </select>
+
+          <select name='priorite'>
+            <option value='1' ${task.priorite==='1'?'selected':''}>1 (faible)</option>
+            <option value='2' ${task.priorite==='2'?'selected':''}>2</option>
+            <option value='3' ${task.priorite==='3'?'selected':''}>3</option>
+            <option value='4' ${task.priorite==='4'?'selected':''}>4 (haute)</option>
+          </select>
+
+          <button type='submit'>Enregistrer</button>
+          <button type='button' onclick="cancelEdit('${id}')">Annuler</button>
+        </form>
+      `;
+    }
+
+    function cancelEdit(id) {
+      loadTasks();
+    }
+
+    function saveTask(id, form) {
+      const data = {
+        titre: form.titre.value,
+        description: form.description.value,
+        statut: form.statut.value,
+        categorie: form.categorie.value,
+        priorite: form.priorite.value
+      };
+      updateTask(id, data);
+    }
+
+    async function updateTask(id, data) {
+      try {
+        await fetch(`/api/task/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        loadTasks();
+      } catch (err) {
+        alert('Erreur lors de la mise à jour');
+        console.error(err);
+      }
+    }
+
+    // Ajouter un commentaire
+    async function addComment(event, taskId) {
+      event.preventDefault();
+      const form = event.target;
+      
+      try {
+        await fetch(`/api/task/${taskId}/postComment`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ commentaire: form.commentaire.value })
+        });
+        loadTasks();
+      } catch (error) {
+        console.error('Erreur lors de l\'ajout du commentaire:', error);
+        alert('Erreur lors de l\'ajout du commentaire');
+      }
+    }
+
+    // Supprimer un commentaire
+    async function deleteComment(taskId, commentIndex) {
+      if (!confirm('Voulez-vous vraiment supprimer ce commentaire ?')) return;
+      
+      try {
+        await fetch(`/api/task/${taskId}/deleteComment/${commentIndex}`, {
+          method: 'DELETE'
+        });
+        loadTasks();
+      } catch (error) {
+        console.error('Erreur lors de la suppression du commentaire:', error);
+        alert('Erreur lors de la suppression du commentaire');
+      }
+    }
+
+    // Ajouter une sous-tâche
+    function addSubTask(taskId) {
+      const container = document.querySelector(`#task-${taskId} .task-display`);
+      container.insertAdjacentHTML(
+        'beforeend',
+        subTaskFormHTML({ taskId })
+      );
+    }
+
+    // Modifier une sous-tâche
+    function editSubTask(taskId, subtaskId) {
+      const row = document.getElementById(`subtask-${subtaskId}`);
+      const titre = row.children[0].innerText;
+      const statut = row.children[1].innerText;
+      const echeance = row.children[2].innerText;
+
+      row.innerHTML = `
+        <td colspan="4">
+          ${subTaskFormHTML({
+            taskId,
+            subtask: {
+              _id: subtaskId,
+              titre,
+              statut,
+              echeance
+            }
+          })}
+        </td>
+      `;
+    }
+
+    // Supprimer une sous-tâche
+    function deleteSubTask(taskId, subtaskId) {
+      if (!confirm('Supprimer cette sous-tâche ?')) return;
+
+      fetch(`/api/task/${taskId}/subtask/${subtaskId}`, {
+        method: 'DELETE'
+      }).then(() => loadTasks());
+    }
+
+    // Générer le formulaire HTML pour les sous-tâches
+    function subTaskFormHTML({ taskId, subtask = null }) {
+      return `
+        <form onsubmit="event.preventDefault(); saveSubTask('${taskId}', '${subtask?._id || ''}', this)" style="display: grid; grid-template-columns: 3fr 2fr 150px auto auto; gap: 8px; margin-top: 10px; align-items: center;">
+          <input
+            type="text"
+            name="titre"
+            placeholder="Titre"
+            value="${subtask?.titre || ''}"
+            required
+            style="width: 100%; min-width: 0;"
+          />
+
+          <select name="statut" style="width: 100%; min-width: 0;">
+            <option value="à faire" ${subtask?.statut === 'à faire' ? 'selected' : ''}>À faire</option>
+            <option value="en cours" ${subtask?.statut === 'en cours' ? 'selected' : ''}>En cours</option>
+            <option value="terminée" ${subtask?.statut === 'terminée' ? 'selected' : ''}>Terminée</option>
+            <option value="annulée" ${subtask?.statut === 'annulée' ? 'selected' : ''}>Annulée</option>
+          </select>
+
+          <input
+            type="date"
+            name="echeance"
+            value="${subtask?.echeance ? subtask.echeance.split('T')[0] : ''}"
+            style="width: 100%; min-width: 0; max-width: 150px;"
+          />
+
+          <button type="submit" style="white-space: nowrap; padding: 8px 12px;">💾</button>
+          <button type="button" onclick="loadTasks()" style="white-space: nowrap; padding: 8px 12px;">✖</button>
+        </form>
+      `;
+    }
+
+    // Sauvegarder une sous-tâche
+    async function saveSubTask(taskId, subtaskId, form) {
+      const data = {
+        titre: form.titre.value,
+        statut: form.statut.value,
+        echeance: form.echeance.value || null
+      };
+
+      const url = subtaskId
+        ? `/api/task/${taskId}/subtask/${subtaskId}`
+        : `/api/task/${taskId}/subtask`;
+
+      const method = subtaskId ? 'PUT' : 'POST';
+
+      await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
-      if (response.redirected) {
-        window.location.href = response.url;
-      } else {
-        window.location.reload();
-      }
-    } catch (err) {
-      alert('Erreur lors de la mise à jour');
-      console.error(err);
+
+      loadTasks();
     }
-  }
 
-  async function addComment(taskId, form) {
-  await fetch(`/api/task/${taskId}/postComment`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ commentaire: form.commentaire.value })
-  });
-  window.location.reload();
-}
-
-function addSubTask(taskId) {
-  const container = document.querySelector(`#task-${taskId} .task-display`);
-  container.insertAdjacentHTML(
-    'beforeend',
-    subTaskFormHTML({ taskId })
-  );
-}
-
-
-function editSubTask(taskId, subtaskId) {
-  const row = document.getElementById(`subtask-${subtaskId}`);
-  const titre = row.children[0].innerText;
-  const statut = row.children[1].innerText;
-  const echeance = row.children[2].innerText;
-
-  row.innerHTML = `
-    <td colspan="4">
-      ${subTaskFormHTML({
-        taskId,
-        subtask: {
-          _id: subtaskId,
-          titre,
-          statut,
-          echeance
-        }
-      })}
-    </td>
-  `;
-}
-
-
-function deleteSubTask(taskId, subtaskId) {
-  if (!confirm('Supprimer cette sous-tâche ?')) return;
-
-  fetch(`/api/task/${taskId}/subtask/${subtaskId}`, {
-    method: 'DELETE'
-  }).then(() => window.location.reload());
-}
-
-function subTaskFormHTML({ taskId, subtask = null }) {
-  return `
-    <form onsubmit="event.preventDefault(); saveSubTask('${taskId}', '${subtask?._id || ''}', this)">
-      <input
-        type="text"
-        name="titre"
-        placeholder="Titre"
-        value="${subtask?.titre || ''}"
-        required
-      />
-
-      <select name="statut">
-        <option value="à faire" ${subtask?.statut === 'à faire' ? 'selected' : ''}>À faire</option>
-        <option value="en cours" ${subtask?.statut === 'en cours' ? 'selected' : ''}>En cours</option>
-        <option value="terminée" ${subtask?.statut === 'terminée' ? 'selected' : ''}>Terminée</option>
-        <option value="annulée" ${subtask?.statut === 'annulée' ? 'selected' : ''}>Annulée</option>
-      </select>
-
-      <input
-        type="date"
-        name="echeance"
-        value="${subtask?.echeance ? subtask.echeance.split('T')[0] : ''}"
-      />
-
-      <button type="submit">💾</button>
-      <button type="button" onclick="window.location.reload()">Annuler</button>
-    </form>
-  `;
-}
-
-async function saveSubTask(taskId, subtaskId, form) {
-  const data = {
-    titre: form.titre.value,
-    statut: form.statut.value,
-    echeance: form.echeance.value || null
-  };
-
-  const url = subtaskId
-    ? `/api/task/${taskId}/subtask/${subtaskId}`
-    : `/api/task/${taskId}/subtask`;
-
-  const method = subtaskId ? 'PUT' : 'POST';
-
-  await fetch(url, {
-    method,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  });
-
-  window.location.reload();
-}
-
-
-
-</script>
+    // Charger les tâches au démarrage
+    loadTasks();
+  </script>
