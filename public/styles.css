@@ -474,3 +474,15 @@
       border: none;
       border-top: 2px solid #e0e0e0;
     }
+
+    .btn-history {
+      background: #6366f1;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+
+    .btn-history:hover {
+      background: #4f46e5;
+    }

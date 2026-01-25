@@ -105,6 +105,32 @@
 
     <hr>
 
+    <div class="filters-section">
+      <h2>↕️ Trier les tâches</h2>
+
+      <div class="filters-grid">
+        <div class="filter-group">
+          <label for="sort-field">Trier par</label>
+          <select id="sort-field" onchange="sortTasks()">
+            <option value="">Aucun tri</option>
+            <option value="echeance">Date d’échéance</option>
+            <option value="priorite">Priorité</option>
+            <option value="dateCreation">Date de création</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="sort-order">Ordre</label>
+          <select id="sort-order" onchange="sortTasks()">
+            <option value="asc">Croissant</option>
+            <option value="desc">Décroissant</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <hr>
+
     <!-- Liste des tâches -->
     <h2>📋 Liste des tâches</h2>
     <div class="tasks-grid" id="tasks-container">
@@ -211,6 +237,7 @@
             <button class="btn-edit" onclick="editTask('${task._id}')">✏️ Modifier</button>
             <button class="btn-delete" onclick="deleteTask('${task._id}')">🗑️ Supprimer</button>
             <button class="btn btn-primary" onclick="addSubTask('${task._id}')">➕ Ajouter une sous-tâche</button>
+            <button class="btn-history" onclick="goToHistory('${task._id}')">🕒 Historique</button>
           </div>
         </div>
       `).join('');
@@ -488,18 +515,19 @@
 
     // Supprimer un commentaire
     async function deleteComment(taskId, commentIndex) {
-      if (!confirm('Voulez-vous vraiment supprimer ce commentaire ?')) return;
-      
-      try {
-        await fetch(`/api/task/${taskId}/deleteComment/${commentIndex}`, {
-          method: 'DELETE'
-        });
-        loadTasks();
-      } catch (error) {
-        console.error('Erreur lors de la suppression du commentaire:', error);
-        alert('Erreur lors de la suppression du commentaire');
-      }
+    if (!confirm('Supprimer ce commentaire ?')) return;
+
+    try {
+      await fetch(`/api/task/${taskId}/comment/${commentIndex}`, {
+        method: 'DELETE'
+      });
+      loadTasks();
+    } catch (error) {
+      console.error('Erreur lors de la suppression du commentaire:', error);
+      alert('Erreur lors de la suppression');
     }
+    }
+
 
     // Ajouter une sous-tâche
     function addSubTask(taskId) {
@@ -595,6 +623,44 @@
       });
 
       loadTasks();
+    }
+
+    function sortTasks() {
+      const field = document.getElementById('sort-field').value;
+      const order = document.getElementById('sort-order').value;
+
+      // Aucun tri → affichage normal
+      if (!field) {
+        displayTasks(allTasks);
+        return;
+      }
+
+      const sortedTasks = [...allTasks].sort((a, b) => {
+        let valA = a[field];
+        let valB = b[field];
+
+        // Gestion des dates
+        if (field === 'echeance' || field === 'dateCreation') {
+          valA = valA ? new Date(valA).getTime() : 0;
+          valB = valB ? new Date(valB).getTime() : 0;
+        }
+
+        // Gestion des priorités (string → number)
+        if (field === 'priorite') {
+          valA = Number(valA);
+          valB = Number(valB);
+        }
+
+        if (valA < valB) return order === 'asc' ? -1 : 1;
+        if (valA > valB) return order === 'asc' ? 1 : -1;
+        return 0;
+      });
+
+      displayTasks(sortedTasks);
+    }
+
+    function goToHistory(taskId) {
+      window.location.href = `/task/${taskId}/history`;
     }
 
     // Charger les tâches au démarrage
