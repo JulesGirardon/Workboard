@@ -1,6 +1,74 @@
 <h1>🗂️ Gestionnaire de tâches</h1>
 
-    <!-- Section des filtres -->
+    <!-- Formulaire de création -->
+    
+    <form id="create-task-form" onsubmit="createTask(event)">
+      <h2>➕ Nouvelle tâche</h2>
+      <input type="text" id="titre" placeholder="Titre" required />
+      <textarea id="description" placeholder="Description" required></textarea>
+
+      <label>Statut :</label>
+      <select id="statut">
+        <option value="à faire">À faire</option>
+        <option value="en cours">En cours</option>
+        <option value="terminée">Terminée</option>
+        <option value="annulée">Annulée</option>
+      </select>
+
+      <label>Catégorie :</label>
+      <select id="categorie">
+        <option value="perso">Perso</option>
+        <option value="travail">Travail</option>
+        <option value="projet">Projet</option>
+        <option value="autre">Autre</option>
+      </select>
+
+      <label>Priorité :</label>
+      <select id="priorite">
+        <option value="1">1 (faible)</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4 (haute)</option>
+      </select>
+
+      <label>Étiquettes (séparées par des virgules) :</label>
+      <input type="text" id="etiquettes" placeholder="tag1, tag2" />
+
+      <label>Échéance :</label>
+      <input type="date" id="echeance" />
+
+      <button type="submit">Créer la tâche</button>
+    </form>
+
+    <hr>
+
+    <div class="filters-section">
+      <h2>↕️ Trier les tâches</h2>
+
+      <div class="filters-grid">
+        <div class="filter-group">
+          <label for="sort-field">Trier par</label>
+          <select id="sort-field" onchange="sortTasks()">
+            <option value="">Aucun tri</option>
+            <option value="echeance">Date d’échéance</option>
+            <option value="priorite">Priorité</option>
+            <option value="dateCreation">Date de création</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="sort-order">Ordre</label>
+          <select id="sort-order" onchange="sortTasks()">
+            <option value="asc">Croissant</option>
+            <option value="desc">Décroissant</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <hr>
+
+<!-- Section des filtres -->
     <div class="filters-section">
       <h2>🔍 Filtres</h2>
       
@@ -69,73 +137,6 @@
       </div>
 
       <div class="active-filters" id="active-filters"></div>
-    </div>
-
-    <hr>
-
-    <!-- Formulaire de création -->
-    <h2>➕ Nouvelle tâche</h2>
-    <form id="create-task-form" onsubmit="createTask(event)">
-      <input type="text" id="titre" placeholder="Titre" required />
-      <textarea id="description" placeholder="Description" required></textarea>
-
-      <label>Statut :</label>
-      <select id="statut">
-        <option value="à faire">À faire</option>
-        <option value="en cours">En cours</option>
-        <option value="terminée">Terminée</option>
-        <option value="annulée">Annulée</option>
-      </select>
-
-      <label>Catégorie :</label>
-      <select id="categorie">
-        <option value="perso">Perso</option>
-        <option value="travail">Travail</option>
-        <option value="projet">Projet</option>
-        <option value="autre">Autre</option>
-      </select>
-
-      <label>Priorité :</label>
-      <select id="priorite">
-        <option value="1">1 (faible)</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4 (haute)</option>
-      </select>
-
-      <label>Étiquettes (séparées par des virgules) :</label>
-      <input type="text" id="etiquettes" placeholder="tag1, tag2" />
-
-      <label>Échéance :</label>
-      <input type="date" id="echeance" />
-
-      <button type="submit">Créer la tâche</button>
-    </form>
-
-    <hr>
-
-    <div class="filters-section">
-      <h2>↕️ Trier les tâches</h2>
-
-      <div class="filters-grid">
-        <div class="filter-group">
-          <label for="sort-field">Trier par</label>
-          <select id="sort-field" onchange="sortTasks()">
-            <option value="">Aucun tri</option>
-            <option value="echeance">Date d’échéance</option>
-            <option value="priorite">Priorité</option>
-            <option value="dateCreation">Date de création</option>
-          </select>
-        </div>
-
-        <div class="filter-group">
-          <label for="sort-order">Ordre</label>
-          <select id="sort-order" onchange="sortTasks()">
-            <option value="asc">Croissant</option>
-            <option value="desc">Décroissant</option>
-          </select>
-        </div>
-      </div>
     </div>
 
     <hr>
