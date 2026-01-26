@@ -54,6 +54,15 @@
         </div>
       </div>
 
+      <div class="filter-group">
+        <label for="filter-q">Recherche</label>
+        <input
+          type="text"
+          id="filter-q"
+          placeholder="Titre ou description..."
+        />
+      </div>
+
       <div class="filter-buttons">
         <button class="btn btn-primary" onclick="applyFilters()">Appliquer les filtres</button>
         <button class="btn btn-secondary" onclick="resetFilters()">Réinitialiser</button>
@@ -290,6 +299,14 @@
         currentFilters.apres = apres;
       }
 
+      // Texte libre (titre / description)
+      const q = document.getElementById('filter-q').value.trim();
+      if (q) {
+        params.append('q', q);
+        currentFilters.q = q;
+      }
+
+
       // Charger les tâches filtrées
       loadFilteredTasks(params);
       displayActiveFilters();
@@ -342,6 +359,14 @@
         filters.push({ type: 'apres', value: currentFilters.apres, label: `Après: ${currentFilters.apres}` });
       }
 
+      if (currentFilters.q) {
+        filters.push({
+          type: 'q',
+          value: currentFilters.q,
+          label: `Recherche: "${currentFilters.q}"`
+        });
+      }
+
       if (filters.length === 0) {
         container.innerHTML = '';
         return;
@@ -373,6 +398,7 @@
       document.getElementById('filter-etiquette').value = '';
       document.getElementById('filter-avant').value = '';
       document.getElementById('filter-apres').value = '';
+      document.getElementById('filter-q').value = '';
       currentFilters = {};
       loadTasks();
       document.getElementById('active-filters').innerHTML = '';
