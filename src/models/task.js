@@ -1,0 +1,72 @@
+const mongoose = require('mongoose');
+
+const subTaskSchema = new mongoose.Schema({
+  titre: {
+    type: String,
+    required: true,
+    default: 'New Task',
+  },
+  echeance: {
+    type: Date,
+  },
+  statut: {
+    type: String,
+    enum: ['à faire', 'en cours', 'terminée', 'annulée'],
+    default: 'à faire',
+  }
+});
+
+const taskSchema = new mongoose.Schema({
+  titre: {
+    type: String,
+    required: true,
+    default: 'New Task',
+  },
+  description: {
+    type: String,
+    required: true,
+    default: 'Task Description',
+  },
+  dateCreation: {
+    type: Date,
+    default: Date.now,
+  },
+  echeance: {
+    type: Date,
+  },
+  statut: {
+    type: String,
+    enum: ['à faire', 'en cours', 'terminée', 'annulée'],
+    default: 'à faire',
+  },
+  priorite: {
+    type: Number,
+    enum: [1, 2, 3, 4],
+  },
+  categorie: {
+    type: String,
+    enum: ['perso', 'travail', 'projet', 'autre'],
+  },
+  etiquettes: {
+    type: [String],
+  },
+  sousTaches: {
+    type: [subTaskSchema],
+  },
+  commentaires: {
+    type: [String],
+  },
+  histoireModifications: [
+    {
+      champModifie: String,
+      ancienneValeur: mongoose.Schema.Types.Mixed,
+      nouvelleValeur: mongoose.Schema.Types.Mixed,
+      date: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
+});
+
+module.exports = mongoose.model('Task', taskSchema);

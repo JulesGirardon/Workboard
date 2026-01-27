@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestionnaire de tâches avec filtres</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+
+    h1, h2 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    /* Filtres */
+    .filters-section {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+      border-left: 4px solid #667eea;
+    }
+
+    .filters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .filter-group {
+      position: relative;
+    }
+
+    .filter-group label {
+      display: block;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .filter-group select,
+    .filter-group input {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+      background: white;
+      cursor: pointer;
+    }
+
+    .filter-group select:focus,
+    .filter-group input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .filter-group select {
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      background-size: 20px;
+      padding-right: 40px;
+    }
+
+    .filter-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+
+    /* Active filters display */
+    .active-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid #ddd;
+    }
+
+    .filter-tag {
+      background: #667eea;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .filter-tag button {
+      background: transparent;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    /* Form de création */
+    form {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+    }
+
+    form input,
+    form textarea,
+    form select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    form textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    form button {
+      background: #28a745;
+      color: white;
+      padding: 12px 30px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    form button:hover {
+      background: #218838;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+    }
+
+    /* Cartes de tâches */
+    .tasks-grid {
+      display: grid;
+      gap: 20px;
+    }
+
+    .task-card {
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 20px;
+      transition: all 0.3s;
+    }
+
+    .task-card:hover {
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+      transform: translateY(-3px);
+    }
+
+    .task-card h3 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .task-card p {
+      color: #666;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .task-card strong {
+      color: #444;
+    }
+
+    .task-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 15px 0;
+    }
+
+    .badge {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge-status {
+      background: #007bff;
+      color: white;
+    }
+
+    .badge-priority {
+      background: #ffc107;
+      color: #333;
+    }
+
+    .badge-category {
+      background: #17a2b8;
+      color: white;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 10px 0;
+    }
+
+    .tag {
+      background: #e9ecef;
+      padding: 4px 10px;
+      border-radius: 10px;
+      font-size: 11px;
+      color: #555;
+    }
+
+    .task-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .task-actions button {
+      flex: 1;
+      padding: 8px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.3s;
+    }
+
+    .btn-edit {
+      background: #ffc107;
+      color: #333;
+    }
+
+    .btn-delete {
+      background: #dc3545;
+      color: white;
+    }
+
+    .btn-edit:hover {
+      background: #e0a800;
+    }
+
+    .btn-delete:hover {
+      background: #c82333;
+    }
+
+    /* Formulaires dans les tâches */
+    .task-display form {
+      margin-top: 10px;
+      display: flex;
+      gap: 5px;
+    }
+
+    .task-display form input[type="text"],
+    .task-display form textarea,
+    .task-display form select {
+      flex: 1;
+      padding: 8px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+
+    .task-display form button {
+      padding: 8px 15px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      background: #667eea;
+      color: white;
+      font-size: 13px;
+    }
+
+    .task-display form button:hover {
+      background: #5568d3;
+    }
+
+    /* Tables de sous-tâches */
+    .task-display table {
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    .task-display table th,
+    .task-display table td {
+      padding: 8px;
+      text-align: left;
+      border: 1px solid #ddd;
+      font-size: 13px;
+    }
+
+    .task-display table th {
+      background: #f8f9fa;
+      font-weight: 600;
+    }
+
+    .task-display table button {
+      padding: 4px 8px;
+      margin: 0 2px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      background: transparent;
+    }
+
+    .task-display table button:hover {
+      background: #e9ecef;
+    }
+
+    /* Commentaires */
+    .comments-section {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    .comments-list {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0;
+    }
+
+    .comment-item {
+      background: #f8f9fa;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      border-radius: 8px;
+      border-left: 3px solid #667eea;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s;
+    }
+
+    .comment-item:hover {
+      background: #e9ecef;
+      transform: translateX(3px);
+    }
+
+    .comment-text {
+      flex: 1;
+      color: #444;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .comment-delete-btn {
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 12px;
+      margin-left: 10px;
+      opacity: 0.7;
+      transition: all 0.2s;
+    }
+
+    .comment-delete-btn:hover {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+
+    .add-comment-form {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .add-comment-form input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 13px;
+      transition: border-color 0.3s;
+    }
+
+    .add-comment-form input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .add-comment-form button {
+      padding: 8px 15px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      background: #667eea;
+      color: white;
+      font-size: 16px;
+      transition: all 0.3s;
+    }
+
+    .add-comment-form button:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+    }
+
+    .no-tasks {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+      font-size: 16px;
+    }
+
+    hr {
+      margin: 30px 0;
+      border: none;
+      border-top: 2px solid #e0e0e0;
+    }
+
+    .btn-history {
+      background: #6366f1;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+
+    .btn-history:hover {
+      background: #4f46e5;
+    }
