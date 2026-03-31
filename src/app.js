@@ -10,14 +10,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
-// ✅ CONFIG HANDLEBARS CORRECTE
 app.engine(
   'hbs',
   exhbs.engine({
     extname: 'hbs',
     defaultLayout: 'main',
     layoutsDir: path.join(__dirname, 'views/layouts'),
-  })
+  }),
 );
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
@@ -46,7 +45,11 @@ app.get('/', async (req, res) => {
 
 // ================= MONGODB =================
 async function main() {
-  await mongoose.connect('mongodb://127.0.0.1:27017/Workboard');
+  if (process.env.NODE_ENV === 'production') {
+    await mongoose.connect('mongodb://workboard-prod-mongo:27017/Workboard');
+  } else {
+    await mongoose.connect('mongodb://workboard-dev-mongo:27017/Workboard');
+  }
   console.log(' MongoDB connected !');
 
   app.listen(port, () => {

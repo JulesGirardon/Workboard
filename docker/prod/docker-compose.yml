@@ -1,0 +1,25 @@
+services:
+  app:
+    build:
+      context: ../..
+      dockerfile: ./docker/prod/Dockerfile
+    container_name: workboard-prod-app
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - ../../.env
+    ports:
+      - '3000:3000'
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:6
+    container_name: workboard-prod-mongo
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data-prod:/data/db
+
+volumes:
+  mongo-data-prod:
