@@ -3,10 +3,12 @@
     <!-- Formulaire de création -->
     
     <form id="create-task-form" onsubmit="createTask(event)">
+      <!-- Note: Ce formulaire permet de créer une nouvelle tâche. Lorsqu'il est soumis, il envoie une requête POST à l'endpoint /api/tasks avec les données de la tâche. Assurez-vous de gérer cet endpoint dans votre code serveur pour créer la tâche et retourner une réponse appropriée. -->
       <h2>➕ Nouvelle tâche</h2>
       <input type="text" id="titre" placeholder="Titre" required />
       <textarea id="description" placeholder="Description" required></textarea>
 
+      <!-- Note: Les champs suivants permettent de définir le statut, la catégorie, la priorité, les étiquettes et l'échéance de la tâche. Assurez-vous que les valeurs envoyées correspondent à ce que votre backend attend pour ces champs. -->
       <label>Statut :</label>
       <select id="statut">
         <option value="à faire">À faire</option>
@@ -15,6 +17,7 @@
         <option value="annulée">Annulée</option>
       </select>
 
+      <!-- Note: La catégorie est un champ important pour organiser les tâches. Assurez-vous que les options proposées ici correspondent aux catégories que vous avez définies dans votre application. -->
       <label>Catégorie :</label>
       <select id="categorie">
         <option value="perso">Perso</option>
@@ -23,6 +26,7 @@
         <option value="autre">Autre</option>
       </select>
 
+      <!-- Note: La priorité est un champ numérique qui peut être utilisé pour trier les tâches ou appliquer des filtres. Assurez-vous que les valeurs envoyées ici correspondent à ce que votre backend attend pour ce champ. -->
       <label>Priorité :</label>
       <select id="priorite">
         <option value="1">1 (faible)</option>
@@ -31,9 +35,11 @@
         <option value="4">4 (haute)</option>
       </select>
 
+      <!-- Note: Les étiquettes sont un champ de texte où l'utilisateur peut entrer plusieurs étiquettes séparées par des virgules. -->
       <label>Étiquettes (séparées par des virgules) :</label>
       <input type="text" id="etiquettes" placeholder="tag1, tag2" />
 
+      <!-- Note: L'échéance est un champ de date qui permet à l'utilisateur de définir une date limite pour la tâche. Assurez-vous que le format de date envoyé correspond à ce que votre backend attend. -->
       <label>Échéance :</label>
       <input type="date" id="echeance" />
 
@@ -42,12 +48,15 @@
 
     <hr>
 
+    <!-- Section de tri -->
     <div class="filters-section">
       <h2>↕️ Trier les tâches</h2>
+
 
       <div class="filters-grid">
         <div class="filter-group">
           <label for="sort-field">Trier par</label>
+          <!-- Note: Ces champs de tri permettent à l'utilisateur de choisir le champ par lequel trier les tâches (date d’échéance, priorité, date de création) et l'ordre de tri (croissant ou décroissant). Assurez-vous que les valeurs envoyées ici correspondent à ce que votre backend attend pour appliquer le tri correctement. -->
           <select id="sort-field" onchange="sortTasks()">
             <option value="">Aucun tri</option>
             <option value="echeance">Date d’échéance</option>
@@ -56,6 +65,7 @@
           </select>
         </div>
 
+        <!-- Note: Le champ d'ordre de tri permet à l'utilisateur de choisir si le tri doit être effectué en ordre croissant ou décroissant. Assurez-vous que les valeurs envoyées ici correspondent à ce que votre backend attend pour appliquer le tri correctement. -->
         <div class="filter-group">
           <label for="sort-order">Ordre</label>
           <select id="sort-order" onchange="sortTasks()">
@@ -74,6 +84,7 @@
       
       <div class="filters-grid">
         <div class="filter-group">
+          <!-- Note: Ces champs de filtre permettent à l'utilisateur de filtrer les tâches en fonction de différents critères (statut, priorité, catégorie, étiquette, échéance). Assurez-vous que les valeurs envoyées ici correspondent à ce que votre backend attend pour appliquer les filtres correctement. -->
           <label for="filter-statut">Statut</label>
           <select id="filter-statut">
             <option value="">Tous les statuts</option>
@@ -84,6 +95,7 @@
           </select>
         </div>
 
+        <!-- Note: Le champ de priorité permet à l'utilisateur de filtrer les tâches en fonction de leur priorité. -->
         <div class="filter-group">
           <label for="filter-priorite">Priorité</label>
           <select id="filter-priorite">
@@ -95,6 +107,7 @@
           </select>
         </div>
 
+        <!-- Note: Le champ de catégorie permet à l'utilisateur de filtrer les tâches en fonction de leur catégorie. -->
         <div class="filter-group">
           <label for="filter-categorie">Catégorie</label>
           <select id="filter-categorie">
@@ -106,22 +119,26 @@
           </select>
         </div>
 
+        <!-- Note: Le champ d'étiquette permet à l'utilisateur de filtrer les tâches en fonction d'une étiquette spécifique. L'utilisateur peut entrer une étiquette et le système affichera uniquement les tâches qui contiennent cette étiquette. Assurez-vous que le format de l'étiquette envoyé correspond à ce que votre backend attend pour appliquer le filtre correctement. -->
         <div class="filter-group">
           <label for="filter-etiquette">Étiquette</label>
           <input type="text" id="filter-etiquette" placeholder="Rechercher une étiquette...">
         </div>
 
+        <!-- Note: Le champ d'échéance avant permet à l'utilisateur de filtrer les tâches en fonction de leur date d'échéance. Assurez-vous que le format de date envoyé correspond à ce que votre backend attend. -->
         <div class="filter-group">
           <label for="filter-avant">Échéance avant le</label>
           <input type="date" id="filter-avant">
         </div>
 
+        <!-- Note: Le champ d'échéance après permet à l'utilisateur de filtrer les tâches en fonction de leur date d'échéance. Assurez-vous que le format de date envoyé correspond à ce que votre backend attend. -->
         <div class="filter-group">
           <label for="filter-apres">Échéance après le</label>
           <input type="date" id="filter-apres">
         </div>
       </div>
 
+      <!-- Note: Le champ de recherche permet à l'utilisateur de filtrer les tâches en fonction d'un texte libre qui peut correspondre au titre ou à la description de la tâche. Assurez-vous que le format du texte envoyé correspond à ce que votre backend attend pour appliquer le filtre correctement. -->
       <div class="filter-group">
         <label for="filter-q">Recherche</label>
         <input
@@ -131,6 +148,7 @@
         />
       </div>
 
+      <!-- Note: Les boutons suivants permettent à l'utilisateur d'appliquer les filtres sélectionnés ou de réinitialiser tous les filtres pour afficher toutes les tâches. Assurez-vous que les fonctions applyFilters() et resetFilters() sont correctement implémentées dans votre code JavaScript pour gérer ces actions. -->
       <div class="filter-buttons">
         <button class="btn btn-primary" onclick="applyFilters()">Appliquer les filtres</button>
         <button class="btn btn-secondary" onclick="resetFilters()">Réinitialiser</button>
