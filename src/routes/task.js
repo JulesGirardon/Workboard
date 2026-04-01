@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Task = require('../models/task');
+const { buildHistory } = require('../utils/taskHistory');
 
 // Route pour récupérer une tâche par ID
 router.put('/:id/postComment', async (req, res) => {
@@ -135,31 +136,6 @@ router.get('/:id/history', async (req, res) => {
     res.status(500).send('Erreur serveur');
   }
 });
-
-// Fonction pour construire l'historique des modifications d'une tâche
-function buildHistory(oldTask, newData) {
-  // Construire l'historique des modifications d'une tâche
-  const history = [];
-
-  // Comparer les champs de l'ancienne tâche avec les nouvelles données
-  for (const key of Object.keys(newData)) {
-    // Si la valeur du champ a changé, ajouter une entrée à l'historique
-    if (
-      oldTask[key] !== undefined &&
-      newData[key] !== undefined &&
-      oldTask[key]?.toString() !== newData[key]?.toString()
-    ) {
-      history.push({
-        champModifie: key,
-        ancienneValeur: oldTask[key],
-        nouvelleValeur: newData[key],
-        date: new Date(),
-      });
-    }
-  }
-
-  return history;
-}
 
 // Route pour récupérer une tâche par ID
 router.get('/:id', async (req, res) => {

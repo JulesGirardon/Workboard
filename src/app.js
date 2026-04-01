@@ -5,7 +5,7 @@ const exhbs = require('express-handlebars');
 const session = require('express-session');
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT ? Number(process.env.PORT) : 3000;
 
 // Configuration de la session
 app.use(
@@ -118,17 +118,28 @@ app.get('/register', (req, res) => {
 // (Removed duplicate/misleading middleware: session.userId is not used, only session.user)
 
 // ================= MONGODB =================
-async function main() {
+function getMongoUri() {
+  // Allow tests/dev to override the URI
+  if (process.env.MONGODB_URI) return process.env.MONGODB_URI;
+
   if (process.env.NODE_ENV === 'production') {
-    await mongoose.connect('mongodb://workboard-prod-mongo:27017/Workboard');
-  } else {
-    await mongoose.connect('mongodb://workboard-dev-mongo:27017/Workboard');
+    return 'mongodb://workboard-prod-mongo:27017/Workboard';
   }
-  console.log(' MongoDB connected !');
+  return 'mongodb://workboard-dev-mongo:27017/Workboard';
+}
+
+async function start() {
+  await mongoose.connect(getMongoUri());
+  console.log('MongoDB connected!');
 
   app.listen(port, () => {
     console.log(`🚀 Server running on http://localhost:${port}`);
   });
 }
 
-main().catch(console.error);
+module.exports = { app, start, getMongoUri };
+
+// Only start the server when running this file directly (not when imported by tests)
+if (require.main === module) {
+  start().catch(console.error);
+}
