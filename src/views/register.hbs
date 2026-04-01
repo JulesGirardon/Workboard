@@ -1,25 +1,25 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
-</head>
-<body>
-    <!-- Note: This template is for the registration page. It contains a form that submits the user's username, email, and password to the /user/register endpoint using a POST request. Make sure to handle this endpoint in your server-side code to create a new user and return an appropriate response. -->
+<div class='auth'>
+  <div class='auth-card'>
     <h1>Register</h1>
-    <form action="/user/register" method="POST">
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required>
 
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required>
+    <form action='/register' method='POST'>
+      <label for='username'>Username</label>
+      <input type='text' id='username' name='username' required />
 
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
+      <label for='email'>Email</label>
+      <input type='email' id='email' name='email' required />
 
-        <button type="submit">Register</button>
+      <label for='password'>Password</label>
+      <input type='password' id='password' name='password' required />
+
+      <div class='auth-actions'>
+        <button class='btn btn-primary' type='submit'>Create account</button>
+        <button
+          class='btn btn-secondary'
+          type='button'
+          onclick="window.location.href='/login'"
+        >Back to login</button>
+      </div>
     </form>
-    <button onclick="window.location.href='/user/login'">Switch to Login</button>
-</body>
-</html>
+  </div>
+</div>

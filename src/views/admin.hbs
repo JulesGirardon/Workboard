@@ -1,81 +1,17 @@
-<div class="admin-page">
-  <div class="users-column">
+<div class='admin-page'>
+  <section class='panel'>
     <h2>Utilisateurs</h2>
-    <ul id="users-list">
-      <!-- Users will be dynamically loaded here -->
+    <ul class='list' id='users-list'>
+      <li class='no-tasks'>Chargement…</li>
     </ul>
-  </div>
+  </section>
 
-  <div class="tasks-column">
+  <section class='panel'>
     <h2>Tâches de l'utilisateur</h2>
-    <ul id="tasks-list">
-      <!-- Tasks will be dynamically loaded here -->
+    <ul class='list' id='tasks-list'>
+      <li class='no-tasks'>Sélectionne un utilisateur</li>
     </ul>
-  </div>
+  </section>
 </div>
 
-<script>
-  // Fetch and display all users
-  async function loadUsers() {
-    try {
-      const response = await fetch('/admin/users');
-      const users = await response.json();
-      const usersList = document.getElementById('users-list');
-
-      usersList.innerHTML = users.map(user => `
-        <li onclick="loadTasks('${user._id}')">
-          ${user.username} (${user.email})
-        </li>
-      `).join('');
-    } catch (error) {
-      console.error('Erreur lors du chargement des utilisateurs:', error);
-    }
-  }
-
-  // Fetch and display tasks for a specific user
-  async function loadTasks(userId) {
-    try {
-      const response = await fetch(`/admin/users/${userId}/tasks`);
-      const tasks = await response.json();
-      const tasksList = document.getElementById('tasks-list');
-
-      tasksList.innerHTML = tasks.map(task => `
-        <li>
-          <strong>${task.titre}</strong>: ${task.description}
-        </li>
-      `).join('');
-    } catch (error) {
-      console.error('Erreur lors du chargement des tâches:', error);
-    }
-  }
-
-  // Load users on page load
-  loadUsers();
-</script>
-
-<style>
-  .admin-page {
-    display: flex;
-    gap: 20px;
-  }
-
-  .users-column, .tasks-column {
-    flex: 1;
-    border: 1px solid #ccc;
-    padding: 10px;
-  }
-
-  ul {
-    list-style: none;
-    padding: 0;
-  }
-
-  li {
-    cursor: pointer;
-    margin: 5px 0;
-  }
-
-  li:hover {
-    text-decoration: underline;
-  }
-</style>
+<script src='/admin.js' defer></script>

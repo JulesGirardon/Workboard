@@ -5,34 +5,50 @@ const Task = require('../models/task');
 // Créer une nouvelle tâche
 router.post('/', async (req, res) => {
   try {
+    // Use the authenticated user from session as the creator
+    const creatorId = req.session?.user?._id;
+    if (!creatorId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
     // Créer une nouvelle tâche avec les données du corps de la requête
     const task = new Task({
       titre: req.body.titre,
       description: req.body.description,
       echeance: req.body.echeance,
       statut: req.body.statut,
-      priorite: req.body.priorite,
+      priorite:
+        req.body.priorite !== undefined && req.body.priorite !== ''
+          ? Number(req.body.priorite)
+          : undefined,
       categorie: req.body.categorie,
       etiquettes: req.body.etiquettes
-        ? req.body.etiquettes.split(',').map(e => e.trim())
+        ? req.body.etiquettes.split(',').map((e) => e.trim())
         : [],
       sousTaches: req.body.sousTaches,
       commentaires: req.body.commentaires
-        ? req.body.commentaires.split(',').map(c => c.trim())
+        ? req.body.commentaires.split(',').map((c) => c.trim())
         : [],
-      Creator: req.body.Creator, // Added Creator field
+      // Do not trust Creator from body
+      Creator: creatorId,
     });
     await task.save({ validateBeforeSave: true });
-    res.redirect(303, '/');
+    return res.status(201).json(task);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    return res.status(400).json({ error: error.message });
   }
 });
 
 // Récupérer toutes les tâches
 router.get('/', async (req, res) => {
   try {
-    const filter = {};
+    const creatorId = req.session?.user?._id;
+    if (!creatorId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    // Only return tasks for the logged-in user
+    const filter = { Creator: creatorId };
     if (req.query.statut) {
       filter.statut = Array.isArray(req.query.statut)
         ? { $in: req.query.statut }
@@ -67,10 +83,13 @@ router.get('/', async (req, res) => {
     const sorter = req.query.tri
       ? { [req.query.tri]: req.query.ordre === 'desc' ? -1 : 1 }
       : {};
-    const tasks = await Task.find(filter, null, { sort: sorter }).populate('Creator');
-    res.json(tasks);
+    const tasks = await Task.find(filter, null, { sort: sorter }).populate(
+      'Creator',
+      'username email role',
+    );
+    return res.json(tasks);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 

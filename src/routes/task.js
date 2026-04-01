@@ -8,15 +8,18 @@ router.put('/:id/postComment', async (req, res) => {
   try {
     // Récupérer la tâche par ID
     const task = await Task.findById(req.params.id);
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
     // Ajouter le commentaire au tableau des commentaires de la tâche
     task.commentaires.push(req.body.commentaire);
     // Enregistrer la tâche mise à jour dans la base de données
     await task.save();
     // Envoyer la tâche mise à jour en réponse
-    res.json(task);
+    return res.json(task);
   } catch (error) {
     // En cas d'erreur, envoyer une réponse d'erreur
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 
@@ -27,14 +30,18 @@ router.post('/:id/subtask', async (req, res) => {
 
   try {
     // Ajouter la sous-tâche au tableau des sous-tâches de la tâche
-    await Task.findByIdAndUpdate(req.params.id, {
-      $push: { sousTaches: { titre, echeance, statut } }
-    });
-    // Envoyer la tâche mise à jour en réponse
-    res.redirect(303, '/');
+    const updated = await Task.findByIdAndUpdate(
+      req.params.id,
+      { $push: { sousTaches: { titre, echeance, statut } } },
+      { new: true },
+    );
+    if (!updated) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+    return res.sendStatus(204);
   } catch (err) {
     // En cas d'erreur, envoyer une réponse d'erreur
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 });
 
@@ -45,7 +52,7 @@ router.put('/:taskId/subtask/:subtaskId', async (req, res) => {
 
   try {
     // Mettre à jour la sous-tâche dans le tableau des sous-tâches de la tâche
-    await Task.updateOne(
+    const result = await Task.updateOne(
       // Trouver la tâche par ID et la sous-tâche par ID dans le tableau des sous-tâches
       { _id: req.params.taskId, 'sousTaches._id': req.params.subtaskId },
       // Mettre à jour les champs de la sous-tâche
@@ -54,14 +61,16 @@ router.put('/:taskId/subtask/:subtaskId', async (req, res) => {
           'sousTaches.$.titre': titre,
           'sousTaches.$.echeance': echeance,
           'sousTaches.$.statut': statut,
-        }
-      }
+        },
+      },
     );
-    // Envoyer la tâche mise à jour en réponse
-    res.redirect(303, '/');
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ error: 'Task or subtask not found' });
+    }
+    return res.sendStatus(204);
   } catch (err) {
     // En cas d'erreur, envoyer une réponse d'erreur
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 });
 
@@ -69,15 +78,18 @@ router.put('/:taskId/subtask/:subtaskId', async (req, res) => {
 router.delete('/:taskId/subtask/:subtaskId', async (req, res) => {
   try {
     // Supprimer la sous-tâche du tableau des sous-tâches de la tâche
-    await Task.findByIdAndUpdate(req.params.taskId, {
-      $pull: { sousTaches: { _id: req.params.subtaskId } }
-    });
-
-    // Envoyer la tâche mise à jour en réponse
-    res.redirect(303, '/');
+    const updated = await Task.findByIdAndUpdate(
+      req.params.taskId,
+      { $pull: { sousTaches: { _id: req.params.subtaskId } } },
+      { new: true },
+    );
+    if (!updated) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+    return res.sendStatus(204);
   } catch (err) {
     // En cas d'erreur, envoyer une réponse d'erreur
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 });
 
@@ -90,14 +102,11 @@ router.delete('/:id/comment/:index', async (req, res) => {
     // Supprimer l’élément à l’index donné
     await Task.updateOne(
       { _id: id },
-      { $unset: { [`commentaires.${index}`]: 1 } }
+      { $unset: { [`commentaires.${index}`]: 1 } },
     );
 
     // Nettoyer les "trous" laissés par $unset
-    await Task.updateOne(
-      { _id: id },
-      { $pull: { commentaires: null } }
-    );
+    await Task.updateOne({ _id: id }, { $pull: { commentaires: null } });
 
     // Envoyer une réponse de succès
     res.sendStatus(204);
@@ -126,7 +135,6 @@ router.get('/:id/history', async (req, res) => {
     res.status(500).send('Erreur serveur');
   }
 });
-
 
 // Fonction pour construire l'historique des modifications d'une tâche
 function buildHistory(oldTask, newData) {
@@ -157,9 +165,12 @@ function buildHistory(oldTask, newData) {
 router.get('/:id', async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
-    res.json(task);
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+    return res.json(task);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 
@@ -173,7 +184,7 @@ router.put('/:id', async (req, res) => {
     const history = buildHistory(task, req.body);
 
     // Appliquer les nouvelles valeurs
-    Object.keys(req.body).forEach(key => {
+    Object.keys(req.body).forEach((key) => {
       task[key] = req.body[key];
     });
 
@@ -181,9 +192,9 @@ router.put('/:id', async (req, res) => {
     task.histoireModifications.push(...history);
 
     await task.save();
-    res.sendStatus(204);
+    return res.sendStatus(204);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 
@@ -191,13 +202,15 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     // Supprimer la tâche de la base de données
-    const task = await Task.deleteOne({ _id: req.params.id });
-    res.redirect(303, '/');
+    const result = await Task.deleteOne({ _id: req.params.id });
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+    return res.sendStatus(204);
   } catch (error) {
     // En cas d'erreur, envoyer une réponse d'erreur
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
-
 
 module.exports = router;

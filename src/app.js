@@ -7,6 +7,16 @@ const session = require('express-session');
 const app = express();
 const port = 3000;
 
+// Configuration de la session
+app.use(
+  session({
+    secret: 'votre_secret_session',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false }, // mettre true si HTTPS
+  }),
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
@@ -40,54 +50,17 @@ function isAdmin(req, res, next) {
 
 // Middleware to redirect to login if not authenticated
 app.use((req, res, next) => {
-  const isLoggedIn = req.session && req.session.user;
-  const isAuthPage = req.path === '/user/login' || req.path === '/user/register';
+  // Let static files and API routes behave normally
+  if (req.path.startsWith('/api/')) return next();
 
-  console.log('Request path:', req.path);
-  console.log('User session:', req.session);
+  const isLoggedIn = req.session && req.session.user;
+  const isAuthPage = req.path === '/login' || req.path === '/register';
 
   if (!isLoggedIn && !isAuthPage) {
-    console.log('Redirection to /user/login skipped for debugging.');
-    // return res.redirect('/user/login'); // Temporarily disabled
+    return res.redirect('/login');
   }
 
-  next();
-});
-
-// Login route
-app.post('/user/login', async (req, res) => {
-  const { email, password } = req.body;
-
-  console.log('Login attempt:', { email, password });
-
-  try {
-    const user = await User.findOne({ email });
-
-    if (!user || user.password !== password) {
-      console.log('Invalid credentials for email:', email);
-      // return res.redirect('/user/login?error=1'); // Temporarily disabled
-      return res.status(401).send('Invalid credentials.');
-    }
-
-    // Set session user
-    req.session.user = { id: user._id, role: user.role };
-    console.log('User logged in:', req.session.user);
-
-    // Redirect to dashboard or admin page based on role
-    if (user.role === 'admin') {
-      console.log('Admin user detected. Redirection skipped for debugging.');
-      // return res.redirect('/admin'); // Temporarily disabled
-      return res.send('Admin access granted.');
-    }
-
-    console.log('Standard user detected. Redirection skipped for debugging.');
-    // return res.redirect('/dashboard'); // Temporarily disabled
-    return res.send('User access granted.');
-  } catch (error) {
-    console.error('Login error:', error);
-    // return res.redirect('/user/login?error=1'); // Temporarily disabled
-    return res.status(500).send('Internal server error.');
-  }
+  return next();
 });
 
 // ================= ROUTES API =================
@@ -104,44 +77,52 @@ const adminRoutes = require('./routes/admin');
 app.use('/admin', isAuthenticated, isAdmin, adminRoutes);
 
 const userRoutes = require('./routes/user');
-app.use('/user', userRoutes);
+app.use('/', userRoutes);
 
 // ================= ROUTE FRONT =================
 const Task = require('./models/task');
 const User = require('./models/user');
 
-// Redirect the root route to the login page
-app.get('/', (req, res) => {
-  res.redirect('/user/login');
+// Route: Home page (tasks)
+// If not logged in, redirect to /login.
+app.get('/', async (req, res) => {
+  if (!req.session || !req.session.user) {
+    return res.redirect('/login');
+  }
+
+  try {
+    const tasks = await Task.find({ Creator: req.session.user._id }).lean();
+    return res.render('tasks', {
+      title: 'Mes tâches',
+      tasks,
+      user: req.session.user,
+    });
+  } catch (err) {
+    return res.status(500).send('Erreur chargement tâches');
+  }
 });
 
 // Route to display the login form
-app.get('/user/login', (req, res) => {
-  console.log(req.query.error);
-  const error = req.query.error ? 'Invalid credentials. Please try again.' : null;
+app.get('/login', (req, res) => {
+  const error = req.query.error
+    ? 'Invalid credentials. Please try again.'
+    : null;
   res.render('login', { title: 'Login', error });
 });
 
 // Route to display the register form
-app.get('/user/register', (req, res) => {
+app.get('/register', (req, res) => {
   res.render('register', { title: 'Register' });
 });
 
-// Middleware to check if the user is logged in
-app.use((req, res, next) => {
-  const isLoggedIn = req.session && req.session.userId;
-  if (!isLoggedIn && req.path !== '/user/login') {
-    return res.redirect('/user/login');
-  }
-  next();
-});
+// (Removed duplicate/misleading middleware: session.userId is not used, only session.user)
 
 // ================= MONGODB =================
 async function main() {
   if (process.env.NODE_ENV === 'production') {
     await mongoose.connect('mongodb://workboard-prod-mongo:27017/Workboard');
   } else {
-    await mongoose.connect('mongodb://workboard-dev-mongo:27017/Workboard'); 
+    await mongoose.connect('mongodb://workboard-dev-mongo:27017/Workboard');
   }
   console.log(' MongoDB connected !');
 
