@@ -122,16 +122,16 @@ app.get('/register', (req, res) => {
 function getMongoUri() {
   // Allow tests/dev to override the URI
   if (process.env.MONGODB_URI) return process.env.MONGODB_URI;
+
+  if (process.env.NODE_ENV === 'production') {
+    return 'mongodb://workboard-prod-mongo:27017/Workboard';
+  }
+
+  return 'mongodb://workboard-dev-mongo:27017/Workboard';
 }
 
 async function start() {
-  mongodbUri = '';
-
-  if (process.env.NODE_ENV === 'production') {
-    await mongoose.connect(process.env.MONGODB_URI_PROD);
-  } else {
-    await mongoose.connect(process.env.MONGODB_URI_DEV);
-  }
+  await mongoose.connect(getMongoUri());
 
   console.log('MongoDB connected!');
 
